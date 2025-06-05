@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">MiniProject3</string>
+    <string name="gambar">Gambar %1$s</string>
+    <string name="error">Gagal memuat data..... Koneksi Error</string>
+    <string name="try_again">Coba Lagi</string>
+    <string name="profil">Profil</string>
+    <string name="tutup">Tutup</string>
+    <string name="logout">Logout</string>
+    <string name="tambah_hewan">Tambah Hewan</string>
+    <string name="nama">Nama</string>
+    <string name="nama_latin">Nama Latin</string>
+    <string name="batal">Batal</string>
+    <string name="simpan">Simpan</string>
+    <string name="hapus">Hapus</string>
 </resources>
