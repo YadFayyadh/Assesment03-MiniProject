@@ -66,7 +66,6 @@ fun ProfilDialog(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     horizontalArrangement = Arrangement.Center
@@ -85,9 +84,9 @@ fun ProfilDialog(
                         Text(text = stringResource(R.string.logout), color = MaterialTheme.colorScheme.error
                         )
                     }
-
                 }
             }
         }
     }
 }
+
