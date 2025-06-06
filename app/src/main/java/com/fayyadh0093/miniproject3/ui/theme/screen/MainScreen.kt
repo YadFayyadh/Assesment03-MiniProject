@@ -47,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -60,6 +61,8 @@ import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.ClearCredentialException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
@@ -69,6 +72,7 @@ import com.fayyadh0093.miniproject3.R
 import com.fayyadh0093.miniproject3.model.Resep
 import com.fayyadh0093.miniproject3.model.User
 import com.fayyadh0093.miniproject3.network.ApiStatus
+import com.fayyadh0093.miniproject3.network.ResepApi
 import com.fayyadh0093.miniproject3.network.UserDataStore
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -161,24 +165,11 @@ fun MainScreen() {
             ResepDialog(
                 userId = user.email,
                 onDismissRequest = { showHewanDialog = false }
-            ) {name, bahan, langkah,  userId->
-                viewModel.saveData( name, bahan, langkah, user.email,)
+            ) { name, bahan, langkah, userId ->
+                viewModel.saveData(name, bahan, langkah, user.email)
                 showHewanDialog = false
             }
         }
-
-//        if (showDeleteDialog && selectedHewan != null) {
-//            DeleteDialog(
-//                hewan = selectedHewan!!,
-//                user = user,  // user yang sedang login
-//                onDismissRequest = { showDeleteDialog = false },
-//                onConfirmation = {
-//                    viewModel.deleteData(user.email, selectedHewan!!.id)
-//                    showDeleteDialog = false
-//                    selectedHewan = null  // Reset biar aman
-//                }
-//            )
-//        }
 
         if (errorMessage != null){
             Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
@@ -245,7 +236,19 @@ fun ListItem(resep: Resep) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
     ) {
-        Column(
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(resep.imageUrl)
+                .crossfade(true)
+                .build(),
+            contentDescription = stringResource(R.string.gambar, resep.name),
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(id = R.drawable.loading_img),
+            error = painterResource(id = R.drawable.baseline_broken_image_24),
+            modifier = Modifier.fillMaxWidth().padding(4.dp)
+        )
+
+            Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp)
@@ -276,8 +279,6 @@ fun ListItem(resep: Resep) {
         }
     }
 }
-
-
 private suspend fun signIn(context: Context, dataStore: UserDataStore) {
     val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
         .setFilterByAuthorizedAccounts(false)

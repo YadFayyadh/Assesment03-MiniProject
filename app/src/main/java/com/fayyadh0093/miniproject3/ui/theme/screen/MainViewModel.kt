@@ -38,30 +38,39 @@ class MainViewModel : ViewModel() {
 //        selectedHewan.value = null
 //    }
 
-
     fun retrieveData(userId: String?){
         viewModelScope.launch(Dispatchers.IO) {
             status.value = ApiStatus.LOADING
             try {
-//                val resepList = ResepApi.service.getResep(userId)
-//                data.value = resepList
-//                status.value = ApiStatus.SUCCES
-//                 val allResep = ResepApi.service.getResepAll()
-
                 val allResep = ResepApi.service.getResepAll()
+                Log.d("MainViewModel", "allResep: $allResep")
 
-                // Filter data dummy, yaitu yang userId kosong atau null
+                // Dummy data = resep yang userId-nya kosong
                 val dummyData = allResep.filter { it.userId.isNullOrBlank() }
+                Log.d("MainViewModel", "dummyData: $dummyData")
 
                 val finalList = if (userId.isNullOrBlank()) {
-                    // Belum login, hanya tampilkan dummy data
+                    // Belum login: hanya dummy data
                     dummyData
                 } else {
-                    // Sudah login, ambil data user juga
-                    val userData = ResepApi.service.getResep(userId)
-                    dummyData + userData
+                    // Sudah login: tambahkan data user kalau ada
+                    val userData = try {
+                        ResepApi.service.getResep(userId)
+                    } catch (e: Exception) {
+                        Log.d("MainViewModel", "getResep failed: ${e.message}")
+                        emptyList()
+                    }
+
+                    if (userData.isNullOrEmpty()) {
+                        // Kalau user belum pernah nambah data: tetap dummy data
+                        dummyData
+                    } else {
+                        // Dummy data + data user
+                        dummyData + userData
+                    }
                 }
 
+                Log.d("MainViewModel", "finalList: $finalList")
                 data.value = finalList
                 status.value = ApiStatus.SUCCES
             }catch (e: Exception) {
@@ -72,10 +81,11 @@ class MainViewModel : ViewModel() {
     }
 
 
-    fun saveData( name: String, bahan: String,langkah: String, userId: String,) {
+    fun saveData( name: String, bahan: String,langkah: String, userId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                ResepApi.service.postResep(name, bahan, langkah, userId)
+                ResepApi.service.postResep(name, bahan, langkah, userId
+                    )
                 retrieveData(userId)
             } catch (e: Exception) {
                 Log.d("MainViewModel", "Failure: ${e.message}")
@@ -83,20 +93,6 @@ class MainViewModel : ViewModel() {
             }
         }
     }
-
-//    fun deleteData(userId: String,hewanId: String ){
-//        viewModelScope.launch(Dispatchers.IO){
-//            try {
-//                val result = ResepApi.service.deleteResep(userId,hewanId)
-//
-//                    retrieveData(userId)
-//
-//            } catch (e: Exception){
-//                Log.d("MainViewModel", "Failure: ${e.message}")
-//                errorMessage.value = "Error: ${e.message}"
-//            }
-//        }
-//    }
 
     private fun Bitmap.toMultipartBody(): MultipartBody.Part {
         val stream = ByteArrayOutputStream()
@@ -108,9 +104,7 @@ class MainViewModel : ViewModel() {
             "image", "image.jpg", requestBody)
     }
 
-
     fun clearMessage() {
         errorMessage.value = null
     }
-
 }

@@ -52,8 +52,8 @@ object ResepApi {
         retrofit.create(ResepApiService::class.java)
     }
 
-    fun getResepUrl(imageId: String): String{
-        return "${BASE_URL}image.php?id=$imageId"
+    fun getResepUrl(id: String): String{
+        return "$BASE_URL/Resep/$id"
     }
 }
 
