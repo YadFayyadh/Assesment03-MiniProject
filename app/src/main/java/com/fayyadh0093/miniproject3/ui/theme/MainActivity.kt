@@ -11,7 +11,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
            MiniProject3Theme {
-               MainScreen()
+
            }
         }
     }
