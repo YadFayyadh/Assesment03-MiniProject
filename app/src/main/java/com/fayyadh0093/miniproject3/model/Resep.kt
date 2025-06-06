@@ -5,4 +5,5 @@ data class Resep(
     val name: String,
     val bahan: String,
     val langkah: String,
+//    val imageId: String
 )
