@@ -39,11 +39,30 @@ class MainViewModel : ViewModel() {
 //    }
 
 
-    fun retrieveData(userId: String){
+    fun retrieveData(userId: String?){
         viewModelScope.launch(Dispatchers.IO) {
             status.value = ApiStatus.LOADING
             try {
-                data.value = ResepApi.service.getResep(userId)
+//                val resepList = ResepApi.service.getResep(userId)
+//                data.value = resepList
+//                status.value = ApiStatus.SUCCES
+//                 val allResep = ResepApi.service.getResepAll()
+
+                val allResep = ResepApi.service.getResepAll()
+
+                // Filter data dummy, yaitu yang userId kosong atau null
+                val dummyData = allResep.filter { it.userId.isNullOrBlank() }
+
+                val finalList = if (userId.isNullOrBlank()) {
+                    // Belum login, hanya tampilkan dummy data
+                    dummyData
+                } else {
+                    // Sudah login, ambil data user juga
+                    val userData = ResepApi.service.getResep(userId)
+                    dummyData + userData
+                }
+
+                data.value = finalList
                 status.value = ApiStatus.SUCCES
             }catch (e: Exception) {
                 Log.d("MainViewModel", "Failure: ${e.message}")
@@ -53,19 +72,11 @@ class MainViewModel : ViewModel() {
     }
 
 
-    fun saveData(userId: String, name: String, bahan: String,langkah: String, ) {
+    fun saveData( name: String, bahan: String,langkah: String, userId: String,) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val result = ResepApi.service.postResep(
-                    userId,
-                    name.toRequestBody("text/plain".toMediaTypeOrNull()),
-                    bahan.toRequestBody("text/plain".toMediaTypeOrNull()),
-                    langkah.toRequestBody("text/plain".toMediaTypeOrNull()),
-                )
-                if (result.status == "success")
-                    retrieveData(userId)
-                else
-                    throw Exception(result.message)
+                ResepApi.service.postResep(name, bahan, langkah, userId)
+                retrieveData(userId)
             } catch (e: Exception) {
                 Log.d("MainViewModel", "Failure: ${e.message}")
                 errorMessage.value = "Error: ${e.message}"
@@ -73,20 +84,19 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun deleteData(userId: String,hewanId: String ){
-        viewModelScope.launch(Dispatchers.IO){
-            try {
-                val result = ResepApi.service.deleteResep(userId,hewanId)
-                if (result.status == "success")
-                    retrieveData(userId)
-                else
-                    throw Exception(result.message)
-            } catch (e: Exception){
-                Log.d("MainViewModel", "Failure: ${e.message}")
-                errorMessage.value = "Error: ${e.message}"
-            }
-        }
-    }
+//    fun deleteData(userId: String,hewanId: String ){
+//        viewModelScope.launch(Dispatchers.IO){
+//            try {
+//                val result = ResepApi.service.deleteResep(userId,hewanId)
+//
+//                    retrieveData(userId)
+//
+//            } catch (e: Exception){
+//                Log.d("MainViewModel", "Failure: ${e.message}")
+//                errorMessage.value = "Error: ${e.message}"
+//            }
+//        }
+//    }
 
     private fun Bitmap.toMultipartBody(): MultipartBody.Part {
         val stream = ByteArrayOutputStream()

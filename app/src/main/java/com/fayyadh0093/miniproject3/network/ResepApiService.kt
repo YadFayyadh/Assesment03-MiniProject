@@ -1,19 +1,16 @@
 package com.fayyadh0093.miniproject3.network
 
-import com.fayyadh0093.miniproject3.model.OpStatus
 import com.fayyadh0093.miniproject3.model.Resep
 import com.squareup.moshi.KotlinJsonAdapterFactory
 import com.squareup.moshi.Moshi
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.DELETE
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Header
-import retrofit2.http.Multipart
 import retrofit2.http.POST
-import retrofit2.http.Part
 import retrofit2.http.Query
 
 private const val BASE_URL = "https://6841688ed48516d1d35b74c4.mockapi.io"
@@ -29,24 +26,25 @@ private val retrofit = Retrofit.Builder()
 
 interface ResepApiService {
     @GET("/Resep")
-    suspend fun getResep(
-        @Header("Authorization") userId: String
-    ): List<Resep>
+    suspend fun getResep(@Query("userId") userId: String): List<Resep>
 
-    @DELETE("/Resep")
+    @GET("/Resep")
+    suspend fun getResepAll(): List<Resep>
+
+    @DELETE("/Resep/:")
     suspend fun deleteResep(
         @Header("Authorization") userId: String,
         @Query("id") id: String
-    ): OpStatus
+    )
 
-    @Multipart
+    @FormUrlEncoded
     @POST("/Resep")
     suspend fun postResep(
-        @Header("Authorization") userId: String,
-        @Part("name") name: RequestBody,
-        @Part("bahan") bahan : RequestBody,
-        @Part("langkah") langkah : RequestBody,
-    ): OpStatus
+        @Field("name") name: String,
+        @Field("bahan") bahan: String,
+        @Field("langkah") langkah: String,
+        @Field("userId") userId: String
+    )
 }
 
 object ResepApi {
