@@ -144,13 +144,15 @@ fun MainScreen() {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                launcherFromGallery.launch("image/*")
-            }) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(id = R.string.tambah_hewan)
-                )
+            if(user.email != "") {
+                FloatingActionButton(onClick = {
+                    launcherFromGallery.launch("image/*")
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(id = R.string.tambah_hewan)
+                    )
+                }
             }
         }
     ) { innerPadding ->
