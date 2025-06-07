@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MiniProject3</string>
+    <string name="app_name">MyRecipe</string>
     <string name="gambar">Gambar %1$s</string>
     <string name="error">Gagal memuat data..... Koneksi Error</string>
     <string name="try_again">Coba Lagi</string>

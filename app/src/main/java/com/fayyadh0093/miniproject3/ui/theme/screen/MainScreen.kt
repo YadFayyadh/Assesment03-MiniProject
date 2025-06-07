@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -70,8 +71,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.canhub.cropper.CropImageContract
-import com.canhub.cropper.CropImageContractOptions
-import com.canhub.cropper.CropImageOptions
 import com.canhub.cropper.CropImageView
 import com.fayyadh0093.miniproject3.BuildConfig
 import com.fayyadh0093.miniproject3.R
@@ -101,12 +100,10 @@ fun MainScreen() {
     var bahan by remember { mutableStateOf("") }
     var langkah by remember { mutableStateOf("") }
 
-
     var showDialog by remember { mutableStateOf(false) }
     var showResepDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
 
-//    var editResep by remember { mutableStateOf<Resep?>(null) }
-//    var isEditMode by remember { mutableStateOf(false) }
 
     var selectedResep by remember { mutableStateOf<Resep?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -125,7 +122,7 @@ fun MainScreen() {
             val bmp = loadBitmapFromUri(context, it)
             if (bmp != null) {
                 bitmap = bmp
-                showResepDialog = true  // buka dialog input resep setelah gambar siap
+                showResepDialog = true
             }
         }
     }
@@ -173,7 +170,11 @@ fun MainScreen() {
         ScreenContent(viewModel, user.email, Modifier.padding(innerPadding),  onDeleteClick = { resep ->
             selectedResep = resep
             showDeleteDialog = true
-        }
+        },
+            onEditClick = {resep ->
+                selectedResep = resep
+                showEditDialog = true
+            }
 
         )
         if (showDialog){
@@ -204,6 +205,7 @@ fun MainScreen() {
                 }
             )
         }
+
         if (showDeleteDialog && selectedResep != null) {
             DeleteDialog(
                 resep = selectedResep!!,
@@ -215,6 +217,31 @@ fun MainScreen() {
                     selectedResep = null  // Reset biar aman
                 }
             )
+        }
+
+        if (showEditDialog && selectedResep != null) {
+            val resep = selectedResep // 💡 buat variable lokal non-null
+            if (resep != null) {
+                EditDialog(
+                    resep = resep,
+                    imageUrl = resep.imageUrl,
+                    userId = user.email,
+                    onDismissRequest = { showEditDialog = false },
+                    onConfirmation = { name, bahan, langkah, userId, imageUrl ->
+                        viewModel.updateData(
+                            id = resep.id,
+                            name = name,
+                            bahan = bahan,
+                            langkah = langkah,
+                            userId = userId,
+                            imageUrl = imageUrl
+                        )
+                        Toast.makeText(context, "Resep berhasil diubah", Toast.LENGTH_SHORT).show()
+                        showEditDialog = false
+                    },
+                    isEdit = true
+                )
+            }
         }
 
 
@@ -235,11 +262,10 @@ fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
     }
 }
 
-
-
 @Composable
 fun ScreenContent(viewModel: MainViewModel,userId: String,modifier: Modifier = Modifier,
-                  onDeleteClick: (Resep) -> Unit
+                  onDeleteClick: (Resep) -> Unit,
+                  onEditClick: (Resep) -> Unit,
 ){
     val data by viewModel.data
     val status by viewModel.status.collectAsState()
@@ -267,7 +293,8 @@ fun ScreenContent(viewModel: MainViewModel,userId: String,modifier: Modifier = M
                 items(data) { resep ->
                     ListItem(
                         resep = resep,
-                        onDeleteClick = { onDeleteClick(resep) }
+                        onDeleteClick = { onDeleteClick(resep) },
+                        onEditClick = { onEditClick (resep)}
                     )
                 }
             }
@@ -293,7 +320,7 @@ fun ScreenContent(viewModel: MainViewModel,userId: String,modifier: Modifier = M
 }
 
 @Composable
-fun ListItem(resep: Resep,  onDeleteClick: () -> Unit) {
+fun ListItem(resep: Resep,  onDeleteClick: () -> Unit, onEditClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -302,6 +329,7 @@ fun ListItem(resep: Resep,  onDeleteClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
     ) {
+
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(resep.imageUrl)
@@ -311,7 +339,7 @@ fun ListItem(resep: Resep,  onDeleteClick: () -> Unit) {
             contentScale = ContentScale.Crop,
             placeholder = painterResource(id = R.drawable.loading_img),
             error = painterResource(id = R.drawable.baseline_broken_image_24),
-            modifier = Modifier.fillMaxWidth().padding(4.dp)
+            modifier = Modifier.fillMaxWidth().aspectRatio(1.5f)
         )
 
         Row(
@@ -344,24 +372,31 @@ fun ListItem(resep: Resep,  onDeleteClick: () -> Unit) {
                 Text(
                     text = "Langkah: ${resep.langkah}",
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.LightGray),
-                    maxLines = 4
+                    maxLines = 5
                 )
-                IconButton(onClick = { onDeleteClick() }) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = stringResource(id = R.string.hapus)
-                    )
-                }
-                IconButton(onClick = { onDeleteClick() }) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = stringResource(id = R.string.edit)
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(5.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(onClick = { onDeleteClick() }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(id = R.string.hapus)
+                        )
+                    }
+
+                    IconButton(onClick = { onEditClick() }) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = stringResource(id = R.string.edit)
+                        )
+                    }
                 }
             }
         }
     }
 }
+
 
 private suspend fun signIn(context: Context, dataStore: UserDataStore) {
     val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()

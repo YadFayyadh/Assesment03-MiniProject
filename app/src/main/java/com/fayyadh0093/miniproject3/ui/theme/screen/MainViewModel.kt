@@ -1,42 +1,27 @@
 package com.fayyadh0093.miniproject3.ui.theme.screen
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
-import android.util.Base64
+import android.graphics.drawable.BitmapDrawable
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.fayyadh0093.miniproject3.model.Resep
 import com.fayyadh0093.miniproject3.network.ApiStatus
 import com.fayyadh0093.miniproject3.network.ImgbbApi
 import com.fayyadh0093.miniproject3.network.ResepApi
-import com.fayyadh0093.miniproject3.network.ResepUpdate
-import com.fayyadh0093.miniproject3.util.ImgurApi
-import com.fayyadh0093.miniproject3.util.ImgurResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.FormBody
-import okhttp3.FormBody.*
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
-import retrofit2.Response
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.POST
 import java.io.ByteArrayOutputStream
-import java.io.IOException
 
 class MainViewModel : ViewModel() {
 
@@ -70,7 +55,7 @@ class MainViewModel : ViewModel() {
                 Log.d("MainViewModel", "allResep: $allResep")
 
                 // Dummy data = resep yang userId-nya kosong
-                val dummyData = allResep.filter { it.userId.isNullOrBlank() }
+                val dummyData = allResep.filter { it.userId.isBlank() }
                 Log.d("MainViewModel", "dummyData: $dummyData")
 
                 val finalList = if (userId.isNullOrBlank()) {
@@ -104,7 +89,8 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun deleteData(userId: String,resepId: String ){
+    @SuppressLint("SuspiciousIndentation")
+    fun deleteData(userId: String, resepId: String ){
         viewModelScope.launch(Dispatchers.IO){
             try {
                 val result = ResepApi.service.deleteResep(resepId)
@@ -116,24 +102,6 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun updateData(
-        id: String,
-        name: String,
-        bahan: String,
-        langkah: String,
-        userId: String,
-        imageUrl: String
-    ) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                ResepApi.service.updateResep(id, name, bahan, langkah, userId, imageUrl)
-                retrieveData(userId)
-            } catch (e: Exception) {
-                Log.d("MainViewModel", "Update gagal: ${e.message}")
-                errorMessage.value = "Gagal update: ${e.message}"
-            }
-        }
-    }
 
 
 
@@ -206,6 +174,38 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun updateData(
+        id: String,
+        name: String,
+        bahan: String,
+        langkah: String,
+        userId: String,
+        imageUrl: String
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                ResepApi.service.updateResep(id, name, bahan, langkah, userId, imageUrl)
+                retrieveData(userId)
+            } catch (e: Exception) {
+                Log.d("MainViewModel", "Update gagal: ${e.message}")
+                errorMessage.value = "Gagal update: ${e.message}"
+            }
+        }
+    }
+
+    suspend fun loadBitmapFromUrl(context: Context, url: String): Bitmap? {
+        return try {
+            val loader = ImageLoader(context)
+            val request = ImageRequest.Builder(context)
+                .data(url)
+                .allowHardware(false)
+                .build()
+            val result = (loader.execute(request) as? SuccessResult)?.drawable
+            (result as? BitmapDrawable)?.bitmap
+        } catch (e: Exception) {
+            null
+        }
+    }
 
 
 }
