@@ -361,6 +361,7 @@ fun ListItem(resep: Resep,  onDeleteClick: () -> Unit, onEditClick: () -> Unit) 
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.LightGray),
                     maxLines = 5
                 )
+                if (resep.mine != 1) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(5.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -379,6 +380,7 @@ fun ListItem(resep: Resep,  onDeleteClick: () -> Unit, onEditClick: () -> Unit) 
                         )
                     }
                 }
+                    }
             }
         }
     }
