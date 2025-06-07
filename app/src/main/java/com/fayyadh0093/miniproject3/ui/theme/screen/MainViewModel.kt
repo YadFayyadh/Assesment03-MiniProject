@@ -34,18 +34,8 @@ class MainViewModel : ViewModel() {
     var errorMessage = mutableStateOf<String?>(null)
         private set
 
-    private val clientId = "0c7939f538315f9"
 
-//    var selectedHewan = mutableStateOf<Resep?>(null)
-//        private set
 
-//    fun setSelectedHewan(resep: Resep) {
-//        selectedHewan.value = hew
-//    }
-//
-//    fun clearSelectedHewan() {
-//        selectedHewan.value = null
-//    }
 
     fun retrieveData(userId: String?){
         viewModelScope.launch(Dispatchers.IO) {

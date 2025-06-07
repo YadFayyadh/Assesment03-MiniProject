@@ -1,6 +1,5 @@
 package com.fayyadh0093.miniproject3.ui.theme.screen
 
-import android.app.Dialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

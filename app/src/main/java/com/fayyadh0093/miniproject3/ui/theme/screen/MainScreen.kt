@@ -1,13 +1,9 @@
 package com.fayyadh0093.miniproject3.ui.theme.screen
 
-import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -70,8 +66,6 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.canhub.cropper.CropImageContract
-import com.canhub.cropper.CropImageView
 import com.fayyadh0093.miniproject3.BuildConfig
 import com.fayyadh0093.miniproject3.R
 import com.fayyadh0093.miniproject3.model.Resep
@@ -91,14 +85,10 @@ fun MainScreen() {
     val context = LocalContext.current
     val dataStore = UserDataStore(context)
     val user by dataStore.userFlow.collectAsState(User())
-    var userId = user.email
 
     val viewModel: MainViewModel = viewModel()
     val errorMessage by viewModel.errorMessage
 
-    var name by remember { mutableStateOf("") }
-    var bahan by remember { mutableStateOf("") }
-    var langkah by remember { mutableStateOf("") }
 
     var showDialog by remember { mutableStateOf(false) }
     var showResepDialog by remember { mutableStateOf(false) }
@@ -109,10 +99,7 @@ fun MainScreen() {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
-    val launcher = rememberLauncherForActivityResult(CropImageContract()) {
-        bitmap = getCroppedImage(context.contentResolver, it)
-        if (bitmap != null ) showResepDialog = true
-    }
+
 
     val launcherFromGallery = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -447,22 +434,5 @@ private suspend fun signOut(context: Context, dataStore: UserDataStore){
     }
 }
 
-private fun getCroppedImage(
-    resolver: ContentResolver,
-    result: CropImageView.CropResult
-): Bitmap? {
-    if (!result.isSuccessful) {
-        Log.e("IMAGE", "Error: ${result.error}")
-        return null
-    }
 
-    val uri = result.uriContent ?: return null
-
-    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-        MediaStore.Images.Media.getBitmap(resolver, uri)
-    } else {
-        val source = ImageDecoder.createSource(resolver, uri)
-        ImageDecoder.decodeBitmap(source)
-    }
-}
 

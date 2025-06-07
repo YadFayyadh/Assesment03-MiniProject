@@ -2,7 +2,7 @@ package com.fayyadh0093.miniproject3.network
 
 import com.fayyadh0093.miniproject3.model.Resep
 import com.fayyadh0093.miniproject3.util.ImgurResponse
-import com.squareup.moshi.KotlinJsonAdapterFactory
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.squareup.moshi.Moshi
 import okhttp3.MultipartBody
 import retrofit2.Retrofit
