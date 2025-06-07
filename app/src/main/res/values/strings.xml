@@ -12,6 +12,7 @@
     <string name="batal">Batal</string>
     <string name="simpan">Simpan</string>
     <string name="hapus">Hapus</string>
+    <string name="edit">Edit</string>
     <string name="langkah">Langkah</string>
     <string name="bahan">Bahan</string>
 </resources>

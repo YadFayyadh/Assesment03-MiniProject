@@ -104,6 +104,38 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun deleteData(userId: String,resepId: String ){
+        viewModelScope.launch(Dispatchers.IO){
+            try {
+                val result = ResepApi.service.deleteResep(resepId)
+                    retrieveData(userId)
+            } catch (e: Exception){
+                Log.d("MainViewModel", "Failure: ${e.message}")
+                errorMessage.value = "Error: ${e.message}"
+            }
+        }
+    }
+
+    fun updateData(
+        id: String,
+        name: String,
+        bahan: String,
+        langkah: String,
+        userId: String,
+        imageUrl: String
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                ResepApi.service.updateResep(id, name, bahan, langkah, userId, imageUrl)
+                retrieveData(userId)
+            } catch (e: Exception) {
+                Log.d("MainViewModel", "Update gagal: ${e.message}")
+                errorMessage.value = "Gagal update: ${e.message}"
+            }
+        }
+    }
+
+
 
     fun saveData( name: String, bahan: String,langkah: String, userId: String, imageUrl: String) {
         viewModelScope.launch(Dispatchers.IO) {

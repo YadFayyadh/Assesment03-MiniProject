@@ -42,11 +42,29 @@ interface ResepApiService {
     @GET("/Resep")
     suspend fun getResepAll(): List<Resep>
 
-    @DELETE("/Resep/:")
+
+    @DELETE("/Resep/{id}")
     suspend fun deleteResep(
-        @Header("Authorization") userId: String,
-        @Query("id") id: String
+       @Path("id") id: String
     )
+
+    @PUT("/Resep/{id}")
+    suspend fun updateResep(
+        @Path("id") id: String,
+        @Body resep: Resep
+    ): Resep
+
+    @FormUrlEncoded
+    @PUT("/Resep/{id}")
+    suspend fun updateResep(
+        @Path("id") id: String,
+        @Field("name") name: String,
+        @Field("bahan") bahan: String,
+        @Field("langkah") langkah: String,
+        @Field("userId") userId: String,
+        @Field("imageUrl") imageUrl: String
+    ): Resep
+
 
     @FormUrlEncoded
     @POST("/Resep")

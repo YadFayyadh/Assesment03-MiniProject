@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +28,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -100,15 +103,18 @@ fun MainScreen() {
 
 
     var showDialog by remember { mutableStateOf(false) }
-    var showHewanDialog by remember { mutableStateOf(false) }
+    var showResepDialog by remember { mutableStateOf(false) }
 
-    var selectedHewan by remember { mutableStateOf<Resep?>(null) }
+//    var editResep by remember { mutableStateOf<Resep?>(null) }
+//    var isEditMode by remember { mutableStateOf(false) }
+
+    var selectedResep by remember { mutableStateOf<Resep?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
     val launcher = rememberLauncherForActivityResult(CropImageContract()) {
         bitmap = getCroppedImage(context.contentResolver, it)
-        if (bitmap != null ) showHewanDialog = true
+        if (bitmap != null ) showResepDialog = true
     }
 
     val launcherFromGallery = rememberLauncherForActivityResult(
@@ -119,7 +125,7 @@ fun MainScreen() {
             val bmp = loadBitmapFromUri(context, it)
             if (bmp != null) {
                 bitmap = bmp
-                showHewanDialog = true  // buka dialog input resep setelah gambar siap
+                showResepDialog = true  // buka dialog input resep setelah gambar siap
             }
         }
     }
@@ -164,7 +170,11 @@ fun MainScreen() {
             }
         }
     ) { innerPadding ->
-        ScreenContent(viewModel, user.email, Modifier.padding(innerPadding)
+        ScreenContent(viewModel, user.email, Modifier.padding(innerPadding),  onDeleteClick = { resep ->
+            selectedResep = resep
+            showDeleteDialog = true
+        }
+
         )
         if (showDialog){
             ProfilDialog(
@@ -175,22 +185,34 @@ fun MainScreen() {
                 showDialog = false
             }
         }
-        if (showHewanDialog) {
+        if (showResepDialog) {
             ResepDialog(
                 bitmap = bitmap,
                 userId = user.email,
-                onDismissRequest = { showHewanDialog = false },
+                onDismissRequest = { showResepDialog = false },
                 onConfirmation = { name, bahan, langkah, userId, bitmap ->
                     viewModel.uploadAndSave(
                         name, bahan, langkah, userId, bitmap,
                         onSuccess = {
                             Toast.makeText(context, "Resep disimpan!", Toast.LENGTH_SHORT).show()
-                            showHewanDialog = false
+                            showResepDialog = false
                         },
                         onError = { msg ->
                             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                         }
                     )
+                }
+            )
+        }
+        if (showDeleteDialog && selectedResep != null) {
+            DeleteDialog(
+                resep = selectedResep!!,
+                user = user,  // user yang sedang login
+                onDismissRequest = { showDeleteDialog = false },
+                onConfirmation = {
+                    viewModel.deleteData(user.email, selectedResep!!.id)
+                    showDeleteDialog = false
+                    selectedResep = null  // Reset biar aman
                 }
             )
         }
@@ -213,8 +235,12 @@ fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
     }
 }
 
+
+
 @Composable
-fun ScreenContent(viewModel: MainViewModel,userId: String,modifier: Modifier = Modifier){
+fun ScreenContent(viewModel: MainViewModel,userId: String,modifier: Modifier = Modifier,
+                  onDeleteClick: (Resep) -> Unit
+){
     val data by viewModel.data
     val status by viewModel.status.collectAsState()
 
@@ -238,7 +264,12 @@ fun ScreenContent(viewModel: MainViewModel,userId: String,modifier: Modifier = M
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                items(data) { ListItem(resep = it) }
+                items(data) { resep ->
+                    ListItem(
+                        resep = resep,
+                        onDeleteClick = { onDeleteClick(resep) }
+                    )
+                }
             }
         }
 
@@ -262,7 +293,7 @@ fun ScreenContent(viewModel: MainViewModel,userId: String,modifier: Modifier = M
 }
 
 @Composable
-fun ListItem(resep: Resep) {
+fun ListItem(resep: Resep,  onDeleteClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -283,37 +314,55 @@ fun ListItem(resep: Resep) {
             modifier = Modifier.fillMaxWidth().padding(4.dp)
         )
 
-            Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = resep.name,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = resep.name,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 )
-            )
 
-            Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = "Bahan: ${resep.bahan}",
-                style = MaterialTheme.typography.bodyMedium.copy(color = Color.LightGray),
-                maxLines = 3
-            )
+                Text(
+                    text = "Bahan: ${resep.bahan}",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.LightGray),
+                    maxLines = 3
+                )
 
-            Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = "Langkah: ${resep.langkah}",
-                style = MaterialTheme.typography.bodySmall.copy(color = Color.LightGray),
-                maxLines = 4
-            )
+                Text(
+                    text = "Langkah: ${resep.langkah}",
+                    style = MaterialTheme.typography.bodySmall.copy(color = Color.LightGray),
+                    maxLines = 4
+                )
+                IconButton(onClick = { onDeleteClick() }) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = stringResource(id = R.string.hapus)
+                    )
+                }
+                IconButton(onClick = { onDeleteClick() }) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(id = R.string.edit)
+                    )
+                }
+            }
         }
     }
 }
+
 private suspend fun signIn(context: Context, dataStore: UserDataStore) {
     val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
         .setFilterByAuthorizedAccounts(false)

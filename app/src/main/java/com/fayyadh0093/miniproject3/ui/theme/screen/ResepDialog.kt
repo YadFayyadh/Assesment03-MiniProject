@@ -31,18 +31,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.canhub.cropper.CropImage.CancelledResult.bitmap
 import com.fayyadh0093.miniproject3.R
+import com.fayyadh0093.miniproject3.model.Resep
 
 
 @Composable
 fun ResepDialog(
+    resep: Resep? = null,
     bitmap: Bitmap?,
     userId: String,  // tambahkan userId di sini
     onDismissRequest: () -> Unit,
-    onConfirmation: (String, String, String, String, Bitmap) -> Unit
-){
-    var name by remember { mutableStateOf("") }
-    var bahan by remember { mutableStateOf("") }
-    var langkah by remember { mutableStateOf("") }
+    onConfirmation: (String, String, String, String, Bitmap) -> Unit,
+    existingResep: Resep? = null,
+    isEdit: Boolean = false,
+
+    ){
+    var name by remember { mutableStateOf(resep?.name ?: "") }
+    var bahan by remember { mutableStateOf(resep?.bahan ?: "") }
+    var langkah by remember { mutableStateOf(resep?.langkah ?: "") }
+
     val context = LocalContext.current
 
 
