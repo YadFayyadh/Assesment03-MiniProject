@@ -1,18 +1,29 @@
 package com.fayyadh0093.miniproject3.network
 
 import com.fayyadh0093.miniproject3.model.Resep
+import com.fayyadh0093.miniproject3.util.ImgurResponse
 import com.squareup.moshi.KotlinJsonAdapterFactory
 import com.squareup.moshi.Moshi
+import okhttp3.MultipartBody
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Part
+import retrofit2.http.Path
 import retrofit2.http.Query
 
+data class ResepUpdate(
+    val imageUrl: String
+)
 private const val BASE_URL = "https://6841688ed48516d1d35b74c4.mockapi.io"
 
 private val moshi = Moshi.Builder()
@@ -43,18 +54,33 @@ interface ResepApiService {
         @Field("name") name: String,
         @Field("bahan") bahan: String,
         @Field("langkah") langkah: String,
-        @Field("userId") userId: String
+        @Field("userId") userId: String,
+        @Field("imageUrl") imageUrl: String
+    ) : Resep
+
+    @PUT("/Resep/{id}")
+    suspend fun updateResepImage(
+        @Path("id") id: String,
+        @Body update: ResepUpdate
     )
+    @Multipart
+    @POST("image")
+    suspend fun uploadImage(
+        @Header("Authorization") authHeader: String,
+        @Part image: MultipartBody.Part
+    ): ImgurResponse
+
 }
 
 object ResepApi {
-    val service: ResepApiService by lazy {
-        retrofit.create(ResepApiService::class.java)
-    }
+    private const val BASE_URL = "https://6841688ed48516d1d35b74c4.mockapi.io"
 
-    fun getResepUrl(id: String): String{
-        return "$BASE_URL/Resep/$id"
-    }
+    private val retrofit = Retrofit.Builder()
+        .baseUrl(BASE_URL)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    val service: ResepApiService = retrofit.create(ResepApiService::class.java)
 }
 
 enum class ApiStatus { LOADING, SUCCES, FAILED}

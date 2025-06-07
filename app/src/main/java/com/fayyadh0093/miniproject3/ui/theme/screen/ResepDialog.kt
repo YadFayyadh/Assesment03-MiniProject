@@ -1,6 +1,7 @@
 package com.fayyadh0093.miniproject3.ui.theme.screen
 
 import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,23 +23,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.canhub.cropper.CropImage.CancelledResult.bitmap
 import com.fayyadh0093.miniproject3.R
 
 
 @Composable
 fun ResepDialog(
+    bitmap: Bitmap?,
     userId: String,  // tambahkan userId di sini
     onDismissRequest: () -> Unit,
-    onConfirmation: (String, String, String, String) -> Unit
+    onConfirmation: (String, String, String, String, Bitmap) -> Unit
 ){
     var name by remember { mutableStateOf("") }
     var bahan by remember { mutableStateOf("") }
     var langkah by remember { mutableStateOf("") }
+    val context = LocalContext.current
+
 
     Dialog(onDismissRequest = {onDismissRequest()}) {
         Card(
@@ -49,11 +55,16 @@ fun ResepDialog(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ){
-//                Image(
-//                    bitmap = bitmap!!.asImageBitmap(),
-//                    contentDescription = null,
-//                    modifier = Modifier.fillMaxWidth().aspectRatio(1f)
-//                )
+                bitmap?.let {
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                    )
+                }
+
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -98,7 +109,13 @@ fun ResepDialog(
                         Text(text = stringResource(R.string.batal))
                     }
                     OutlinedButton(
-                        onClick = { onConfirmation(name, bahan, langkah, userId) },
+                        onClick = {
+                            if (bitmap != null) {
+                                onConfirmation(name, bahan, langkah, userId, bitmap)
+                            } else {
+                                Toast.makeText(context, "Gambar belum tersedia", Toast.LENGTH_SHORT).show()
+                            }
+                        },
                         enabled = name.isNotEmpty() && bahan.isNotEmpty() && langkah.isNotEmpty(),
                         modifier = Modifier.padding(8.dp)
                     ) {

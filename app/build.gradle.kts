@@ -79,9 +79,8 @@ dependencies {
 
     implementation(libs.android.image.cropper)
 
-
-
-
+    implementation(libs.gson)
+    implementation(libs.gsonconverter)
 
 
 

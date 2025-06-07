@@ -1,20 +1,42 @@
 package com.fayyadh0093.miniproject3.ui.theme.screen
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Base64
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fayyadh0093.miniproject3.model.Resep
 import com.fayyadh0093.miniproject3.network.ApiStatus
+import com.fayyadh0093.miniproject3.network.ImgbbApi
 import com.fayyadh0093.miniproject3.network.ResepApi
+import com.fayyadh0093.miniproject3.network.ResepUpdate
+import com.fayyadh0093.miniproject3.util.ImgurApi
+import com.fayyadh0093.miniproject3.util.ImgurResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.FormBody
+import okhttp3.FormBody.*
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import retrofit2.Response
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
+import retrofit2.http.POST
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 
 class MainViewModel : ViewModel() {
 
@@ -26,6 +48,8 @@ class MainViewModel : ViewModel() {
 
     var errorMessage = mutableStateOf<String?>(null)
         private set
+
+    private val clientId = "0c7939f538315f9"
 
 //    var selectedHewan = mutableStateOf<Resep?>(null)
 //        private set
@@ -81,10 +105,10 @@ class MainViewModel : ViewModel() {
     }
 
 
-    fun saveData( name: String, bahan: String,langkah: String, userId: String) {
+    fun saveData( name: String, bahan: String,langkah: String, userId: String, imageUrl: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                ResepApi.service.postResep(name, bahan, langkah, userId
+                ResepApi.service.postResep(name, bahan, langkah, userId, imageUrl
                     )
                 retrieveData(userId)
             } catch (e: Exception) {
@@ -94,17 +118,63 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun Bitmap.toMultipartBody(): MultipartBody.Part {
+    private fun bitmapToMultipartBody(bitmap: Bitmap): MultipartBody.Part {
         val stream = ByteArrayOutputStream()
-        compress(Bitmap.CompressFormat.JPEG, 80, stream)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
         val byteArray = stream.toByteArray()
-        val requestBody = byteArray.toRequestBody(
-            "image/jpg".toMediaTypeOrNull(), 0, byteArray.size)
-        return MultipartBody.Part.createFormData(
-            "image", "image.jpg", requestBody)
+        val requestBody = byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull())
+        return MultipartBody.Part.createFormData("image", "upload.jpg", requestBody)
     }
+
 
     fun clearMessage() {
         errorMessage.value = null
     }
+
+
+    suspend fun uploadImageToImgBBViaRetrofit(bitmap: Bitmap): String? {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream)
+        val imageBytes = byteArrayOutputStream.toByteArray()
+
+        val requestBody = imageBytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
+        val multipart = MultipartBody.Part.createFormData("image", "upload.jpg", requestBody)
+
+        return try {
+            val response = ImgbbApi.services.uploadImage(image = multipart)
+            if (response.success) {
+                response.data.url
+            } else {
+                Log.e("UploadError", "Upload gagal: ${response.status}")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("UploadError", "Exception: ${e.message}")
+            null
+        }
+    }
+
+    fun uploadAndSave(
+        name: String,
+        bahan: String,
+        langkah: String,
+        userId: String,
+        bitmap: Bitmap,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            val imageUrl = uploadImageToImgBBViaRetrofit(bitmap)
+            if (imageUrl != null) {
+                saveData(name, bahan, langkah, userId, imageUrl)
+                onSuccess()
+            } else {
+                onError("Gagal upload gambar ke ImgBB")
+            }
+        }
+    }
+
+
+
 }
+

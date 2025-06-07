@@ -3,12 +3,15 @@ package com.fayyadh0093.miniproject3.ui.theme.screen
 import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,7 +75,6 @@ import com.fayyadh0093.miniproject3.R
 import com.fayyadh0093.miniproject3.model.Resep
 import com.fayyadh0093.miniproject3.model.User
 import com.fayyadh0093.miniproject3.network.ApiStatus
-import com.fayyadh0093.miniproject3.network.ResepApi
 import com.fayyadh0093.miniproject3.network.UserDataStore
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -87,9 +89,15 @@ fun MainScreen() {
     val context = LocalContext.current
     val dataStore = UserDataStore(context)
     val user by dataStore.userFlow.collectAsState(User())
+    var userId = user.email
 
     val viewModel: MainViewModel = viewModel()
     val errorMessage by viewModel.errorMessage
+
+    var name by remember { mutableStateOf("") }
+    var bahan by remember { mutableStateOf("") }
+    var langkah by remember { mutableStateOf("") }
+
 
     var showDialog by remember { mutableStateOf(false) }
     var showHewanDialog by remember { mutableStateOf(false) }
@@ -101,6 +109,19 @@ fun MainScreen() {
     val launcher = rememberLauncherForActivityResult(CropImageContract()) {
         bitmap = getCroppedImage(context.contentResolver, it)
         if (bitmap != null ) showHewanDialog = true
+    }
+
+    val launcherFromGallery = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            // Convert uri ke bitmap
+            val bmp = loadBitmapFromUri(context, it)
+            if (bmp != null) {
+                bitmap = bmp
+                showHewanDialog = true  // buka dialog input resep setelah gambar siap
+            }
+        }
     }
 
     Scaffold(
@@ -134,14 +155,7 @@ fun MainScreen() {
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                val options = CropImageContractOptions(
-                    null, CropImageOptions(
-                        imageSourceIncludeGallery = false,
-                        imageSourceIncludeCamera = true,
-                        fixAspectRatio = true
-                    )
-                )
-                launcher.launch(options)
+                launcherFromGallery.launch("image/*")
             }) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -163,18 +177,39 @@ fun MainScreen() {
         }
         if (showHewanDialog) {
             ResepDialog(
+                bitmap = bitmap,
                 userId = user.email,
-                onDismissRequest = { showHewanDialog = false }
-            ) { name, bahan, langkah, userId ->
-                viewModel.saveData(name, bahan, langkah, user.email)
-                showHewanDialog = false
-            }
+                onDismissRequest = { showHewanDialog = false },
+                onConfirmation = { name, bahan, langkah, userId, bitmap ->
+                    viewModel.uploadAndSave(
+                        name, bahan, langkah, userId, bitmap,
+                        onSuccess = {
+                            Toast.makeText(context, "Resep disimpan!", Toast.LENGTH_SHORT).show()
+                            showHewanDialog = false
+                        },
+                        onError = { msg ->
+                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                }
+            )
         }
+
 
         if (errorMessage != null){
             Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
             viewModel.clearMessage()
         }
+    }
+}
+
+fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? {
+    return try {
+        val stream = context.contentResolver.openInputStream(uri)
+        BitmapFactory.decodeStream(stream)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }
 
