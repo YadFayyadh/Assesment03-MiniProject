@@ -69,7 +69,6 @@ interface ResepApiService {
         @Header("Authorization") authHeader: String,
         @Part image: MultipartBody.Part
     ): ImgurResponse
-
 }
 
 object ResepApi {
