@@ -12,7 +12,6 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-
 interface ResepApiService {
     @GET("/Resep")
     suspend fun getResep(@Query("userId") userId: String): List<Resep>
@@ -25,7 +24,6 @@ interface ResepApiService {
     suspend fun deleteResep(
         @Path("id") id: String
     )
-
 
     @FormUrlEncoded
     @PUT("/Resep/{id}")

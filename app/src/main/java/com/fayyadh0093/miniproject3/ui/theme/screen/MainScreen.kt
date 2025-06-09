@@ -89,17 +89,14 @@ fun MainScreen() {
     val viewModel: MainViewModel = viewModel()
     val errorMessage by viewModel.errorMessage
 
-
     var showDialog by remember { mutableStateOf(false) }
     var showResepDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
-
 
     var selectedResep by remember { mutableStateOf<Resep?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
-
 
     val launcherFromGallery = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()

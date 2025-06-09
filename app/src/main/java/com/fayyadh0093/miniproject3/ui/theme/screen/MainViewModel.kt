@@ -30,8 +30,6 @@ class MainViewModel : ViewModel() {
         private set
 
 
-
-
     fun retrieveData(userId: String?){
         viewModelScope.launch(Dispatchers.IO) {
             status.value = ApiStatus.LOADING
@@ -43,10 +41,8 @@ class MainViewModel : ViewModel() {
                 Log.d("MainViewModel", "dummyData: $dummyData")
 
                 val finalList = if (userId.isNullOrBlank()) {
-
                     dummyData
                 } else {
-
                     val userData = try {
                         ResepApi.service.getResep(userId)
                     } catch (e: Exception) {
@@ -55,10 +51,8 @@ class MainViewModel : ViewModel() {
                     }
 
                     if (userData.isEmpty()) {
-                        // Kalau user belum pernah nambah data: tetap dummy data
                         dummyData
                     } else {
-                        // Dummy data + data user
                         dummyData + userData
                     }
                 }
@@ -85,9 +79,6 @@ class MainViewModel : ViewModel() {
             }
         }
     }
-
-
-
 
     private fun saveData( name: String, bahan: String,langkah: String, userId: String, imageUrl: String) {
         viewModelScope.launch(Dispatchers.IO) {
