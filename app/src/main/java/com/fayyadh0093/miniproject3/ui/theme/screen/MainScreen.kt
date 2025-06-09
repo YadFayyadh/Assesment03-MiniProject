@@ -351,15 +351,15 @@ fun ListItem(resep: Resep,  onDeleteClick: () -> Unit, onEditClick: () -> Unit) 
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "Bahan: ${resep.bahan}",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.LightGray),
-                    maxLines = 3
+                    text = "BAHAN : \n${resep.bahan}",
+                    style = MaterialTheme.typography.bodySmall.copy(color = Color.LightGray),
+                    maxLines = 5
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "Langkah: ${resep.langkah}",
+                    text = "LANGKAH: \n${resep.langkah}",
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.LightGray),
                     maxLines = 5
                 )

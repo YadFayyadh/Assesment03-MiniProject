@@ -1,16 +1,11 @@
 package com.fayyadh0093.miniproject3.ui.theme.screen
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import coil.ImageLoader
-import coil.request.ImageRequest
-import coil.request.SuccessResult
 import com.fayyadh0093.miniproject3.model.Resep
 import com.fayyadh0093.miniproject3.network.ApiStatus
 import com.fayyadh0093.miniproject3.network.ImgbbApi
@@ -44,15 +39,14 @@ class MainViewModel : ViewModel() {
                 val allResep = ResepApi.service.getResepAll()
                 Log.d("MainViewModel", "allResep: $allResep")
 
-                // Dummy data = resep yang userId-nya kosong
                 val dummyData = allResep.filter { it.userId.isBlank() }
                 Log.d("MainViewModel", "dummyData: $dummyData")
 
                 val finalList = if (userId.isNullOrBlank()) {
-                    // Belum login: hanya dummy data
+
                     dummyData
                 } else {
-                    // Sudah login: tambahkan data user kalau ada
+
                     val userData = try {
                         ResepApi.service.getResep(userId)
                     } catch (e: Exception) {
@@ -60,7 +54,7 @@ class MainViewModel : ViewModel() {
                         emptyList()
                     }
 
-                    if (userData.isNullOrEmpty()) {
+                    if (userData.isEmpty()) {
                         // Kalau user belum pernah nambah data: tetap dummy data
                         dummyData
                     } else {
@@ -83,7 +77,7 @@ class MainViewModel : ViewModel() {
     fun deleteData(userId: String, resepId: String ){
         viewModelScope.launch(Dispatchers.IO){
             try {
-                val result = ResepApi.service.deleteResep(resepId)
+                ResepApi.service.deleteResep(resepId)
                     retrieveData(userId)
             } catch (e: Exception){
                 Log.d("MainViewModel", "Failure: ${e.message}")
@@ -95,7 +89,7 @@ class MainViewModel : ViewModel() {
 
 
 
-    fun saveData( name: String, bahan: String,langkah: String, userId: String, imageUrl: String) {
+    private fun saveData( name: String, bahan: String,langkah: String, userId: String, imageUrl: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 ResepApi.service.postResep(name, bahan, langkah, userId, imageUrl
@@ -108,21 +102,13 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun bitmapToMultipartBody(bitmap: Bitmap): MultipartBody.Part {
-        val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
-        val byteArray = stream.toByteArray()
-        val requestBody = byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull())
-        return MultipartBody.Part.createFormData("image", "upload.jpg", requestBody)
-    }
-
 
     fun clearMessage() {
         errorMessage.value = null
     }
 
 
-    suspend fun uploadImageToImgBBViaRetrofit(bitmap: Bitmap): String? {
+    private suspend fun uploadImageToImgBBViaRetrofit(bitmap: Bitmap): String? {
         val byteArrayOutputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream)
         val imageBytes = byteArrayOutputStream.toByteArray()
@@ -183,19 +169,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    suspend fun loadBitmapFromUrl(context: Context, url: String): Bitmap? {
-        return try {
-            val loader = ImageLoader(context)
-            val request = ImageRequest.Builder(context)
-                .data(url)
-                .allowHardware(false)
-                .build()
-            val result = (loader.execute(request) as? SuccessResult)?.drawable
-            (result as? BitmapDrawable)?.bitmap
-        } catch (e: Exception) {
-            null
-        }
-    }
+
 
 
 }

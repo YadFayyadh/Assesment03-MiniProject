@@ -37,10 +37,9 @@ import com.fayyadh0093.miniproject3.model.Resep
 fun ResepDialog(
     resep: Resep? = null,
     bitmap: Bitmap?,
-    userId: String,  // tambahkan userId di sini
+    userId: String,
     onDismissRequest: () -> Unit,
     onConfirmation: (String, String, String, String, Bitmap) -> Unit,
-
 
     ){
     var name by remember { mutableStateOf(resep?.name ?: "") }
@@ -48,7 +47,6 @@ fun ResepDialog(
     var langkah by remember { mutableStateOf(resep?.langkah ?: "") }
 
     val context = LocalContext.current
-
 
     Dialog(onDismissRequest = {onDismissRequest()}) {
         Card(
@@ -73,7 +71,7 @@ fun ResepDialog(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text(text = stringResource(id = R.string.nama)) },
-                    maxLines = 1,
+                    maxLines = 2,
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Words,
                         imeAction = ImeAction.Next
@@ -84,7 +82,7 @@ fun ResepDialog(
                     value = bahan,
                     onValueChange = { bahan = it },
                     label = { Text(text = stringResource(id = R.string.bahan)) },
-                    maxLines = 1,
+                    maxLines = 4,
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Sentences,
                         imeAction = ImeAction.Next
@@ -95,7 +93,7 @@ fun ResepDialog(
                     value = langkah,
                     onValueChange = { langkah = it },
                     label = { Text(text = stringResource(id = R.string.langkah)) },
-                    maxLines = 1,
+                    maxLines = 8,
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Sentences,
                         imeAction = ImeAction.Done
