@@ -102,7 +102,6 @@ fun MainScreen() {
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let {
-            // Convert uri ke bitmap
             val bmp = loadBitmapFromUri(context, it)
             if (bmp != null) {
                 bitmap = bmp
@@ -147,7 +146,7 @@ fun MainScreen() {
                 }) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(id = R.string.tambah_hewan)
+                        contentDescription = stringResource(id = R.string.tambah)
                     )
                 }
             }

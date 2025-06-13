@@ -13,12 +13,12 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ResepApiService {
+
     @GET("/Resep")
     suspend fun getResep(@Query("userId") userId: String): List<Resep>
 
     @GET("/Resep")
     suspend fun getResepAll(): List<Resep>
-
 
     @DELETE("/Resep/{id}")
     suspend fun deleteResep(
@@ -36,7 +36,6 @@ interface ResepApiService {
         @Field("imageUrl") imageUrl: String
     ): Resep
 
-
     @FormUrlEncoded
     @POST("/Resep")
     suspend fun postResep(
@@ -46,7 +45,6 @@ interface ResepApiService {
         @Field("userId") userId: String,
         @Field("imageUrl") imageUrl: String
     ): Resep
-
 }
 
     object ResepApi {
@@ -59,6 +57,5 @@ interface ResepApiService {
 
         val service: ResepApiService = retrofit.create(ResepApiService::class.java)
     }
-
 
     enum class ApiStatus { LOADING, SUCCES, FAILED }

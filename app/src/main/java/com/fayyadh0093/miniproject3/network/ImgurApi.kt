@@ -10,7 +10,6 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Query
 
-
 private const val BASE_URL = "https://api.imgbb.com/"
 private const val API_KEY = "2582a153ebb1d4d52a311d022e9b537c"
 private val moshi = Moshi.Builder()
